@@ -1,1 +1,1 @@
-# MM-MoA
+# Inspired by [Mixture-of-Agents Enhances Large Language Model Capabilities](https://arxiv.org/pdf/2406.04692)
