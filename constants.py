@@ -38,7 +38,7 @@ class Prompts:
             Your contribution should represent a quantum leap in solution quality, setting a new standard for insight and analysis.
             """
         )
-        
+
     def moa_final_system(self) -> str:
         return textwrap.dedent(
             """

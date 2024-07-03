@@ -1,6 +1,6 @@
 import base64
 import copy
-from typing import List, Dict, Union
+from typing import List, Dict
 import requests
 import json
 import logging
@@ -23,7 +23,7 @@ class MoASystem:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(self.config.LOG_LEVEL)
         self.logger.addHandler(console_handler)
-        
+
         if not self.config.ANTHROPIC_API_KEY or not self.config.OPENAI_API_KEY:
             self.logger.warning(
                 "Please set ANTHROPIC_API_KEY and OPENAI_API_KEY environment variables."
@@ -44,21 +44,23 @@ class MoASystem:
             "x-api-key": self.config.ANTHROPIC_API_KEY,
             "anthropic-version": "2023-06-01",
         }
-        
+
         # Create the first message
         first_message = {"role": "user", "content": []}
         if user_text:
             first_message["content"].append({"type": "text", "text": user_text})
         if user_image_path:
             base64_image = self.process_image(user_image_path)
-            first_message["content"].append({
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": "image/jpeg",
-                    "data": base64_image
+            first_message["content"].append(
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": base64_image,
+                    },
                 }
-            })
+            )
 
         anthropic_messages = [first_message] + messages
 
@@ -73,7 +75,7 @@ class MoASystem:
         self.logger.debug("Request data:")
         logger_data = copy.deepcopy(data)
         if user_image_path:
-            logger_data["messages"][0]["content"][1].pop('source')
+            logger_data["messages"][0]["content"][1].pop("source")
         self.logger.debug(json.dumps(logger_data, indent=2))
 
         try:
@@ -118,13 +120,18 @@ class MoASystem:
             first_message["content"].append({"type": "text", "text": user_text})
         if user_image_path:
             base64_image = self.process_image(user_image_path)
-            first_message["content"].append({
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-            })
+            first_message["content"].append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+                }
+            )
 
-        openai_messages = [{"role": "system", "content": system_prompt}, first_message] + messages
-        
+        openai_messages = [
+            {"role": "system", "content": system_prompt},
+            first_message,
+        ] + messages
+
         data = {
             "model": model,
             "messages": openai_messages,
@@ -135,7 +142,7 @@ class MoASystem:
         self.logger.debug("Request data:")
         logger_data = copy.deepcopy(data)
         if user_image_path:
-            logger_data['messages'][1]["content"][1].pop("image_url")
+            logger_data["messages"][1]["content"][1].pop("image_url")
         self.logger.debug(json.dumps(logger_data, indent=2))
 
         try:
@@ -158,7 +165,11 @@ class MoASystem:
             return f"Error: {e}"
 
     def claude_3_5_sonnet(
-        self, system_prompt: str, messages: List[Dict[str, str]], user_text: str = None, user_image_path: str = None
+        self,
+        system_prompt: str,
+        messages: List[Dict[str, str]],
+        user_text: str = None,
+        user_image_path: str = None,
     ) -> str:
         return self._call_anthropic_api(
             model="claude-3-5-sonnet-20240620",
@@ -170,7 +181,13 @@ class MoASystem:
             temperature=0.2,
         )
 
-    def gpt_4o(self, system_prompt: str, messages: List[Dict[str, str]], user_text: str = None, user_image_path: str = None) -> str:
+    def gpt_4o(
+        self,
+        system_prompt: str,
+        messages: List[Dict[str, str]],
+        user_text: str = None,
+        user_image_path: str = None,
+    ) -> str:
         return self._call_openai_api(
             model="gpt-4o",
             system_prompt=system_prompt,
@@ -189,7 +206,7 @@ class MoASystem:
             self.logger.error(f"Error processing image: {e}")
             return f"Error: {e}"
 
-    def run(self, user_text: str = None, user_image_path: str = None) -> str:        
+    def run(self, user_text: str = None, user_image_path: str = None) -> str:
         messages = []
         for layer_index, layer in enumerate(self.layers):
             self.logger.info(f"Processing layer {layer_index + 1}")
@@ -203,7 +220,7 @@ class MoASystem:
                         system_prompt=self.prompts.moa_intermediate_system(),
                         messages=messages,
                         user_text=user_text,
-                        user_image_path=user_image_path
+                        user_image_path=user_image_path,
                     )
                     if not response.startswith("Error:"):
                         layer_responses.append(f"Answer{model_index}: {response}")
@@ -228,13 +245,18 @@ class MoASystem:
                     )
 
             else:  # for the aggregation layer
-                messages.append({"role": "user", "content": self.prompts.moa_final_instruct(user_text)})
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": self.prompts.moa_final_instruct(user_text),
+                    }
+                )
 
                 final_response = layer[0](
                     system_prompt=self.prompts.moa_final_system(),
                     messages=messages,
                     user_text=user_text,
-                    user_image_path=user_image_path
+                    user_image_path=user_image_path,
                 )
                 return final_response
 
@@ -245,7 +267,7 @@ class MoASystem:
 if __name__ == "__main__":
     user_text = "Answer the question from the image"
     user_image_path = "image.jpg"
-    
+
     moa = MoASystem()
     final_response = moa.run(user_text, user_image_path)
     print("Final response:")
