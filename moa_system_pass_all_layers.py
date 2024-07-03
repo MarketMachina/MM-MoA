@@ -2,7 +2,6 @@ import base64
 from typing import List, Dict, Union
 import requests
 import json
-import os
 import logging
 
 from constants import Prompts, Config
@@ -15,11 +14,10 @@ class MoASystem:
         self.layers = [
             [self.claude_3_5_sonnet, self.gpt_4o],
             [self.claude_3_5_sonnet, self.gpt_4o],
-            [self.claude_3_5_sonnet, self.gpt_4o],
+            # [self.claude_3_5_sonnet, self.gpt_4o],
             [self.claude_3_5_sonnet],  # Aggregation layer
         ]
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(self.config.LOG_LEVEL)
+        self.logger = logging.getLogger(self.__class__.__name__)  
         if not self.config.ANTHROPIC_API_KEY or not self.config.OPENAI_API_KEY:
             self.logger.warning(
                 "Please set ANTHROPIC_API_KEY and OPENAI_API_KEY environment variables."
@@ -163,7 +161,7 @@ class MoASystem:
             ):  # for all layers except the aggregation layer
                 layer_responses = []
                 for model_index, model in enumerate(layer, start=1):
-                    response = model(self.prompts.moa_system(), messages)
+                    response = model(self.prompts.moa_intermediate_system(), messages)
                     if not response.startswith("Error:"):
                         layer_responses.append(f"Answer{model_index}: {response}")
                     else:
@@ -182,15 +180,14 @@ class MoASystem:
                     messages.append(
                         {
                             "role": "user",
-                            "content": self.prompts.moa_intermediate(),
+                            "content": self.prompts.moa_intermediate_instruct(),
                         }
                     )
 
             else:  # for the aggregation layer
-                final_prompt = self.prompts.moa_final(user_prompt)
-                messages.append({"role": "user", "content": final_prompt})
+                messages.append({"role": "user", "content": self.prompts.moa_final_instruct(user_prompt)})
 
-                final_response = layer[0](self.prompts.moa_system(), messages)
+                final_response = layer[0](self.prompts.moa_final_system(), messages)
                 return final_response
 
         self.logger.error("No valid response generated")
@@ -199,6 +196,7 @@ class MoASystem:
 
 if __name__ == "__main__":
     moa = MoASystem()
+    logging.basicConfig(level=moa.config.LOG_LEVEL)
     user_prompt = {
         "text": "At the event, there were 66 handshakes. If everyone shook hands with each other, how many people were at the event in total?",
         # "image": moa.process_image("path/to/your/image.jpg")
