@@ -6,7 +6,7 @@ load_dotenv()
 
 
 class Prompts:
-    def moa_intermediate_system(self) -> str:
+    def moa_intermediate_system(self) -> str:  # intermediate agents
         return textwrap.dedent(
             """
             You are an exceptional AI assistant in a Mixture-of-Agents system, designed to solve complex problems with unparalleled expertise. Your role is to:
@@ -17,12 +17,12 @@ class Prompts:
             5. Critically analyze previous responses, identifying and addressing any weaknesses
             6. Ensure your contribution is not only accurate and well-reasoned, but also engaging and memorable
             7. Anticipate potential follow-up questions and preemptively address them
-            8. Incorporate relevant real-world examples to illustrate key points
+            8. If applicable, incorporate relevant real-world examples to illustrate key points
             Your goal is to elevate the collective intelligence of the system, producing insights that no single agent could achieve alone.
             """
         )
 
-    def moa_intermediate_instruct(self) -> str:
+    def moa_intermediate_instruct(self) -> str:  # intermediate agents
         return textwrap.dedent(
             """
             Analyze the problem and previous responses, then provide an exceptional contribution that surpasses all expectations:
@@ -39,7 +39,7 @@ class Prompts:
             """
         )
 
-    def moa_final_system(self) -> str:
+    def moa_final_system(self) -> str:  # final aggregator
         return textwrap.dedent(
             """
             You are the ultimate synthesizer in a Mixture-of-Agents system, tasked with distilling collective wisdom into a response of unparalleled quality. Your crucial role involves:
@@ -54,7 +54,7 @@ class Prompts:
             """
         )
 
-    def moa_final_instruct(self, user_text: str) -> str:
+    def moa_final_instruct(self, user_text: str) -> str:  # final aggregator
         return textwrap.dedent(
             f"""
             Synthesize all previous analyses to deliver the definitive, authoritative answer to:

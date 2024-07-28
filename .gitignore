@@ -5,3 +5,7 @@ __pycache__
 .idea
 
 PAPER.md
+alpaca_eval_results.json
+moa_outputs.json
+reference_outputs.json
+leaderboard

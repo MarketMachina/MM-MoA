@@ -10,8 +10,8 @@ from constants import Prompts, Config
 
 
 class MoASystem:
-    def __init__(self):
-        self.prompts = Prompts()
+    def __init__(self, custom_prompts=None):
+        self.prompts = custom_prompts or Prompts()
         self.config = Config()
         self.layers = [
             [self.claude_3_5_sonnet, self.gpt_4o],
